@@ -47,6 +47,7 @@ const userSchema = new Schema({
 },{timestamps:true})
 
 //this things runs everytime just before saving
+//if any field is modified it checks if password too was modified or not only then hashes and saves it
 userSchema.pre("save", async function(next){
     //check if there is any change in password if not return
     if(!this.isModified("password")) return next();
