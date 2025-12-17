@@ -27,7 +27,7 @@ import fs from "fs";
    console.log("file is uploaded on cloudinary",uploadResult.url);
 
    //once the file is uploaded successfully remove it from local disk
-   fs.unlinkSync(localFilePath);
+   //fs.unlinkSync(localFilePath);
    //Cloudinary returns an object (uploadResult) containing the new public URL, size, format, etc
    return uploadResult;
         }catch(error){

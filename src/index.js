@@ -3,9 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./database/db.js";
 import {app} from "./app.js";
 
-//this is temporary app i will change this to  real app.js later
-import express from "express"
-const app = express();
+
 
 //config .env file after that we can use process.env.<attribute_needed>
 dotenv.config({
