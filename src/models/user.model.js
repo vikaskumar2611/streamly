@@ -53,7 +53,7 @@ const userSchema = new Schema(
 //if any field is modified it checks if password too was modified or not only then hashes and saves it
 userSchema.pre("save", async function () {
   //check if there is any change in password if not return
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
 
   //hash the pass
   this.password = await bcrypt.hash(this.password, 10);
@@ -67,8 +67,8 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 //generate access token
-userSchema.methods.generateAcessToken = function () {
-  jwt.sign(
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
     {
       _id: this._id,
       email: this.email,
@@ -84,7 +84,7 @@ userSchema.methods.generateAcessToken = function () {
 
 //in this we only use id as they are frequently made
 userSchema.methods.generateRefreshToken = function () {
-  jwt.sign(
+  return jwt.sign(
     {
       _id: this._id,
     },

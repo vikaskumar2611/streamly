@@ -1,8 +1,7 @@
-import { User } from "../models/user.model";
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
@@ -15,7 +14,15 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Unauthorized request");
     }
 
-    //verify this token with the token in backend
+    //verify this token and check if its valid after verifying decodedToken will look like this
+    /*
+    {
+        "_id": "65f2a...",        // The ID you put in during generation
+        "email": "hitesh@...",    // Any other data you packed in
+        "iat": 1710123456,        // "Issued At" timestamp (auto-generated)
+        "exp": 1710127056         // "Expiration" timestamp (auto-generated)
+    }
+    */
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     //select user through token
