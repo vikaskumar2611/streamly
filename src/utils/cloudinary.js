@@ -38,7 +38,28 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-export { uploadOnCloudinary };
+const getPublicIdFromUrl = (url) => {
+  const regex = /\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+const deleteOnCloudinary = async (fileUrl) => {
+  try {
+    //if there is no path return null
+    if (!fileUrl) return null;
+
+    const publicId = getPublicIdFromUrl(fileUrl);
+
+    const uploadResult = await cloudinary.uploader.destroy(publicId);
+    return uploadResult;
+  } catch (error) {
+    console.log("ERROR:", error);
+    return null;
+  }
+};
+
+export { uploadOnCloudinary, deleteOnCloudinary };
 
 /*
     flow diagram
