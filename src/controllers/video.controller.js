@@ -173,12 +173,50 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found");
     }
 
-    const isOwner = req.user._id !== video.owner.toString();
-    if (!video.isPublished && isOwner) {
+    const isUnauthorised = req.user._id.toString() !== video.owner.toString();
+    if (!video.isPublished && isUnauthorised) {
         throw new ApiError(404, "Video not found");
     }
 
-    return res.status(200).json(new ApiResponse(200, video));
+    const videoResult = await Video.aggregate([
+        {
+            $match: { _id: new mongoose.Types.ObjectId(videoId) },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullName: 1,
+                            avatar: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $unwind: "$owner",
+        },
+    ]);
+
+    if (!videoResult?.length) {
+        throw new ApiError(404, "owner/video not found");
+    }
+
+    await Video.findByIdAndUpdate(videoId, {
+        $inc: { views: 1 },
+    });
+
+    await User.findByIdAndUpdate(req.user._id, {
+        $addToSet: { watchHistory: videoId },
+    });
+
+    return res.status(200).json(new ApiResponse(200, videoResult[0]));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {

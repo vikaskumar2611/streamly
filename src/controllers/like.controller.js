@@ -7,127 +7,65 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const toggleVideoLike = asyncHandler(async (req, res) => {
-    const { videoId } = req.params;
-    //TODO: toggle like on video
-    if (!videoId?.trim() || !isValidObjectId(videoId)) {
-        throw new ApiError(400, "invalid video id");
-    }
+const toggleFunction = (paramName, fieldname, modelName) =>
+    asyncHandler(async (req, res) => {
+        const Id = req.params[paramName];
+        //TODO: toggle like on video
+        if (!Id?.trim() || !isValidObjectId(Id)) {
+            throw new ApiError(400, `invalid ${fieldname} id`);
+        }
 
-    const video = Video.findById(videoId);
+        const object = await modelName.findById(Id);
 
-    if (!video || !video.isPublished) {
-        throw new ApiError(404, "video not found");
-    }
+        if (!object) {
+            throw new ApiError(404, `${fieldname} not found`);
+        }
 
-    const isLiked = await Like.findOneAndDelete({
-        video: videoId,
-        likedBy: req.user._id,
-    });
+        if (fieldname === "video" && !object.isPublished) {
+            throw new ApiError(404, `${fieldname} not found`);
+        }
 
-    if (!isLiked) {
-        const like = await Like.create({
-            video: videoId,
+        const isLiked = await Like.findOneAndDelete({
+            [fieldname]: Id,
             likedBy: req.user._id,
         });
-    }
 
-    const likeCount = Like.countDocuments({ video: videoId });
+        if (!isLiked) {
+            await Like.create({
+                [fieldname]: Id,
+                likedBy: req.user._id,
+            });
+        }
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                likeCount,
-                isLiked ? "video unliked" : "video liked",
-            ),
-        );
-});
+        const likeCount = await Like.countDocuments({ [fieldname]: Id });
 
-const toggleCommentLike = asyncHandler(async (req, res) => {
-    const { commentId } = req.params;
-    //TODO: toggle like on comment
-    if (!commentId?.trim() || !isValidObjectId(commentId)) {
-        throw new ApiError(400, "invalid comment id");
-    }
-
-    const comment = Comment.findById(commentId);
-
-    if (!comment) {
-        throw new ApiError(404, "comment not found");
-    }
-
-    const isLiked = Like.findOneAndDelete({
-        comment: commentId,
-        likedBy: req.user._id,
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    { likeCount, isLiked: !isLiked },
+                    isLiked ? `${fieldname} unliked` : `${fieldname} liked`,
+                ),
+            );
     });
 
-    if (!isLiked) {
-        const like = await Like.create({
-            comment: commentId,
-            likedBy: req.user._id,
-        });
-    }
+const toggleVideoLike = toggleFunction("videoId", "video", Video);
 
-    const likeCount = Like.countDocuments({ comment: commentId });
+const toggleCommentLike = toggleFunction("commentId", "comment", Comment);
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                likeCount,
-                isLiked ? "comment unliked" : "comment liked",
-            ),
-        );
-});
-
-const toggleTweetLike = asyncHandler(async (req, res) => {
-    const { tweetId } = req.params;
-    //TODO: toggle like on tweet
-    if (!tweetId?.trim() || !isValidObjectId(tweetId)) {
-        throw new ApiError(400, "invalid tweet id");
-    }
-
-    const tweet = Tweet.findById(tweetId);
-
-    if (!tweet) {
-        throw new ApiError(404, "tweet not found");
-    }
-
-    const isLiked = Like.findOneAndDelete({
-        tweet: tweetId,
-        likedBy: req.user._id,
-    });
-
-    if (!isLiked) {
-        const like = await Like.create({
-            tweet: tweetId,
-            likedBy: req.user._id,
-        });
-    }
-
-    const likeCount = Like.countDocuments({ tweet: tweetId });
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                likeCount,
-                isLiked ? "tweet unliked" : "tweet liked",
-            ),
-        );
-});
+const toggleTweetLike = toggleFunction("tweetId", "tweet", Tweet);
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
     const userId = new Types.ObjectId(req.user._id);
 
-    const videos = Like.aggregate([
+    const videos = await Like.aggregate([
         {
-            $match: { likedBy: userId },
+            $match: {
+                likedBy: userId,
+                video: { $exists: true, $ne: null },
+            },
         },
         {
             $lookup: {
@@ -136,6 +74,9 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                 foreignField: "_id",
                 as: "videos",
                 pipeline: [
+                    {
+                        $match: { isPublished: true },
+                    },
                     {
                         $project: {
                             videoFile: 1,
@@ -174,20 +115,14 @@ const getLikedVideos = asyncHandler(async (req, res) => {
             },
         },
         {
-            $addFields: {
-                videoDetails: {
-                    $first: "$videos",
-                },
-            },
+            $sort: { createdAt: -1 },
         },
         {
-            $project: {
-                videoDetails: 1,
-            },
+            $unwind: "$videos",
         },
         {
             $replaceRoot: {
-                newRoot: "$videoDetails",
+                newRoot: "$videos",
             },
         },
     ]);
