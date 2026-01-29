@@ -2,7 +2,7 @@ import mongoose, { isValidObjectId, Types } from "mongoose";
 import { Like } from "../models/like.model.js";
 import { Video } from "../models/video.model.js";
 import { Comment } from "../models/comment.model.js";
-import { Tweet } from "../models/tweet.model.js";
+import { Post } from "../models/post.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -54,7 +54,7 @@ const toggleVideoLike = toggleFunction("videoId", "video", Video);
 
 const toggleCommentLike = toggleFunction("commentId", "comment", Comment);
 
-const toggleTweetLike = toggleFunction("tweetId", "tweet", Tweet);
+const togglePostLike = toggleFunction("postId", "post", Post);
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
@@ -134,4 +134,4 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         );
 });
 
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
+export { toggleCommentLike, togglePostLike, toggleVideoLike, getLikedVideos };

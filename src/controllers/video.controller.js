@@ -121,10 +121,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "thumbnail is required");
     }
 
-    const [videoFile, thumbnail] = await Promise.all(
-        await uploadOnCloudinary(thumbnailLocalPath),
+    const [videoFile, thumbnail] = await Promise.all([
         await uploadOnCloudinary(videoLocalPath),
-    );
+        await uploadOnCloudinary(thumbnailLocalPath),
+    ]);
 
     if (!thumbnail) throw new ApiError(500, "Error uploading thumbnail");
     if (!videoFile) throw new ApiError(500, "Error uploading video");
@@ -240,7 +240,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields required");
     }
 
-    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
+    const thumbnailLocalPath = req.file?.path;
 
     if (!thumbnailLocalPath) throw new ApiError(400, "Thumbnail not found");
 
@@ -268,7 +268,9 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Error updating video information");
     }
 
-    return res.status(200).json(new ApiResponse(200, videoUpdated));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, videoUpdated, "video updated successfully"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -286,17 +288,17 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You are not authorized to delete this video");
     }
 
-    const [videoDeleteResult, thumbnailDeleteResult] = await Promise.all(
+    const [videoDeleteResult, thumbnailDeleteResult] = await Promise.all([
         await deleteOnCloudinary(video.videoFile),
         await deleteOnCloudinary(video.thumbnail),
-    );
+    ]);
 
     if (videoDeleteResult?.result !== "ok") {
-        console.warn(`Error deleting video file -,${video.videoFile}`);
+        console.warn(`Error deleting video file -${video.videoFile}`);
     }
 
     if (thumbnailDeleteResult?.result !== "ok") {
-        console.warn(`Error deleting thumbnail file -,${video.thumbnail}`);
+        console.warn(`Error deleting thumbnail file -${video.thumbnail}`);
     }
 
     const deletedVideo = await Video.findByIdAndDelete(videoId);

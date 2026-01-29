@@ -58,7 +58,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
             },
         },
         {
-            $sort: { createdAt: 1 },
+            $sort: { createdAt: -1 },
         },
         {
             $lookup: {
