@@ -122,8 +122,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
     const [videoFile, thumbnail] = await Promise.all([
-        await uploadOnCloudinary(videoLocalPath),
-        await uploadOnCloudinary(thumbnailLocalPath),
+        uploadOnCloudinary(videoLocalPath),
+        uploadOnCloudinary(thumbnailLocalPath),
     ]);
 
     if (!thumbnail) throw new ApiError(500, "Error uploading thumbnail");
@@ -289,8 +289,8 @@ const deleteVideo = asyncHandler(async (req, res) => {
     }
 
     const [videoDeleteResult, thumbnailDeleteResult] = await Promise.all([
-        await deleteOnCloudinary(video.videoFile),
-        await deleteOnCloudinary(video.thumbnail),
+        deleteOnCloudinary(video.videoFile),
+        deleteOnCloudinary(video.thumbnail),
     ]);
 
     if (videoDeleteResult?.result !== "ok") {
