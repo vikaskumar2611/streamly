@@ -17,11 +17,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
     } = req.query;
     //TODO: get all videos based on query, sort, pagination
 
-    if (!query) {
-        throw new ApiError(400, "no query recieved");
+    const matchStage = {};
+
+    if (query) {
+        const Sanitizedquery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        matchStage.title = { $regex: Sanitizedquery, $options: "i" };
     }
 
-    const Sanitizedquery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (userId?.trim() && isValidObjectId(userId)) {
+        matchStage.owner = new mongoose.Types.ObjectId(userId);
+    }
+
+    if (userId?.trim() && userId !== req.user._id.toString()) {
+        matchStage.isPublished = true;
+    }
+
     const pageInt = parseInt(page) || 1;
     const limitInt = Math.min(parseInt(limit) || 10, 100);
     const safeSortBy = ["title", "createdAt", "views", "duration"].includes(
@@ -32,10 +42,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
     const videos = await Video.aggregate([
         {
-            $match: {
-                isPublished: true,
-                title: { $regex: Sanitizedquery, $options: "i" },
-            },
+            $match: matchStage,
         },
         {
             $sort: { [safeSortBy]: sortType === "asc" ? 1 : -1 },
@@ -73,19 +80,18 @@ const getAllVideos = asyncHandler(async (req, res) => {
         {
             $project: {
                 videoFile: 1,
+                duration: 1,
                 thumbnail: 1,
                 title: 1,
                 description: 1,
                 views: 1,
                 owner: 1,
+                createdAt: 1,
             },
         },
     ]);
 
-    const totalVideos = await Video.countDocuments({
-        isPublished: true,
-        title: { $regex: Sanitizedquery, $options: "i" },
-    });
+    const totalVideos = await Video.countDocuments(matchStage);
 
     return res.status(200).json(
         new ApiResponse(200, {
@@ -155,7 +161,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     return res
         .status(201)
         .json(
-            new ApiResponse(200, createdvideo, "video uploaded successfully"),
+            new ApiResponse(201, createdvideo, "video uploaded successfully"),
         );
 });
 

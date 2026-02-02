@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
+import { Video } from "../models/video.model.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -135,9 +136,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
     //now we have the choice to either call the fresh user from database or update current object
 
-    const loggedInUser = await User.findById(user._id).select(
-        "-password -refreshToken",
-    );
+    const loggedInUser = await User.findByIdAndUpdate(user._id, {
+        refreshToken,
+    }).select("-password -refreshToken");
 
     //prepare cookie to be sent
     const options = {
@@ -145,18 +146,20 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true,
     };
 
-    return res
-        .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(200, {
-                user: loggedInUser,
-                accessToken,
-                refreshToken,
-            }),
-            "User logged In Seccessfully",
-        );
+    return (
+        res
+            .status(200)
+            //.cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(
+                new ApiResponse(200, {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken,
+                }),
+                "User logged In Seccessfully",
+            )
+    );
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -229,21 +232,23 @@ const refreshAcessToken = asyncHandler(async (req, res) => {
         };
 
         //generate new tokens
-        const { accessToken, newrefreshToken } =
+        const { accessToken, refreshToken: newrefreshToken } =
             await generateAcessAndRefreshToken(user._id);
 
         //send response with new tokens in cookie and body too
-        return res
-            .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
-            .json(
-                new ApiResponse(
-                    200,
-                    { accessToken, refreshToken: newrefreshToken },
-                    "access token refreshed",
-                ),
-            );
+        return (
+            res
+                .status(200)
+                //.cookie("accessToken", accessToken, options)
+                .cookie("refreshToken", newrefreshToken, options)
+                .json(
+                    new ApiResponse(
+                        200,
+                        { accessToken, refreshToken: newrefreshToken, user },
+                        "access token refreshed",
+                    ),
+                )
+        );
     } catch (error) {
         throw new ApiError(
             401,
@@ -656,6 +661,66 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         );
 });
 
+const getDashboardStats = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    const stats = await Video.aggregate([
+        {
+            $match: { owner: new mongoose.Types.ObjectId(userId) },
+        },
+        {
+            $facet: {
+                totalStats: [
+                    {
+                        $group: {
+                            _id: null,
+                            totalViews: { $sum: "$views" },
+                            totalVideos: { $sum: 1 },
+                            totalWatchMinutes: { $sum: "$duration" },
+                        },
+                    },
+                ],
+                topVideos: [
+                    {
+                        $sort: { views: -1 },
+                    },
+                    {
+                        $limit: 5,
+                    },
+                    {
+                        $project: {
+                            videoFile: 1,
+                            thumbnail: 1,
+                            duration: 1,
+                            views: 1,
+                            createdAt: 1,
+                            title: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $project: {
+                totalViews: {
+                    $ifNull: [{ $first: "$totalStats.totalViews" }, 0],
+                },
+                totalWatchMinutes: {
+                    $ifNull: [{ $first: "$totalStats.totalWatchMinutes" }, 0],
+                },
+                totalVideos: {
+                    $ifNull: [{ $first: "$totalStats.totalVideos" }, 0],
+                },
+                topVideos: "$topVideos",
+            },
+        },
+    ]);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, stats[0], "Dashboard stats fetched"));
+});
+
 export {
     registerUser,
     loginUser,
@@ -668,4 +733,5 @@ export {
     getUserChannelProfile,
     getWatchHistory,
     getCurrentUser,
+    getDashboardStats,
 };
