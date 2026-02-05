@@ -8,7 +8,7 @@ import useAuth from "../../hooks/useAuth.hooks.js";
 const UserChannelPage = () => {
     const axiosPrivate = useAxiosPrivate();
 
-    //const { user } = useAuth();
+    
     //const username = user.username;
 
     const { username } = useParams();
@@ -77,7 +77,7 @@ const UserChannelPage = () => {
     // Toggle Subscribe Handler (passed to card)
     const handleToggleSubscribe = async (channelId) => {
         try {
-            await axiosPrivate.post(`/subscriptions/c/${channelId}`);
+            await axiosPrivate.post(`users/toggle/subscribe/${channelId}`);
         } catch (error) {
             console.error("Subscription toggle failed", error);
         }

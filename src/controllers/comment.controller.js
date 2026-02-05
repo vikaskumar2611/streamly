@@ -143,7 +143,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 });
 
 const addComment = asyncHandler(async (req, res) => {
-    const { content } = req.body;
+    const { content, parentCommentId } = req.body;
     const { videoId } = req.params;
 
     if (!content?.trim()) {
@@ -156,6 +156,20 @@ const addComment = asyncHandler(async (req, res) => {
 
     if (!video || !video.isPublished) {
         throw new ApiError(404, "video not found");
+    }
+
+    if (parentCommentId?.trim()) {
+        if (!isValidObjectId(parentCommentId)) {
+            throw new ApiError(400, "invalid parent comment id");
+        } else {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent?.video.toString() !== videoId) {
+                throw new ApiError(
+                    400,
+                    "parent comment not found/not assoiciated with this video",
+                );
+            }
+        }
     }
 
     const userId = req.user._id;
@@ -173,6 +187,7 @@ const addComment = asyncHandler(async (req, res) => {
         video: videoId,
         owner: userId,
         content: content.trim(),
+        parentComment: parentCommentId?.trim() || null,
     });
 
     if (!newComment) {

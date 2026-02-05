@@ -6,6 +6,9 @@ import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { isValidObjectId } from "mongoose";
+import { Subscription } from "../models/subscription.model.js";
+import { json } from "express";
 
 const generateAcessAndRefreshToken = async (userId) => {
     try {
@@ -144,6 +147,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
         secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 
     return (
@@ -181,10 +185,10 @@ const logoutUser = asyncHandler(async (req, res) => {
         secure: true,
     };
 
-    //clear access token too
+    //clear refresh token too
     return res
         .status(200)
-        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
         .json(new ApiResponse(200, {}, "User logged Out"));
 });
 
@@ -229,22 +233,25 @@ const refreshAcessToken = asyncHandler(async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         };
 
         //generate new tokens
-        const { accessToken, refreshToken: newrefreshToken } =
-            await generateAcessAndRefreshToken(user._id);
+        //const { accessToken, refreshToken: newrefreshToken } =
+        //    await generateAcessAndRefreshToken(user._id);
+        const accessToken = user.generateAccessToken();
 
         //send response with new tokens in cookie and body too
         return (
             res
                 .status(200)
                 //.cookie("accessToken", accessToken, options)
-                .cookie("refreshToken", newrefreshToken, options)
+                .cookie("refreshToken", incomingRefreshToken, options)
                 .json(
                     new ApiResponse(
                         200,
-                        { accessToken, refreshToken: newrefreshToken, user },
+                        //{ accessToken, refreshToken: newrefreshToken, user },
+                        { accessToken, user },
                         "access token refreshed",
                     ),
                 )
@@ -523,24 +530,17 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 12 } = req.query;
+    const pageInt = parseInt(page) || 1;
+    const limitInt = Math.min(parseInt(limit) || 10, 100);
     const user = await User.aggregate([
         {
             $match: {
                 _id: new mongoose.Types.ObjectId(req.user._id),
             },
-            /*
-      we get 
-      {
-        _id: "507f1f77bcf86cd799439011",
-        fullName: "Alex",
-        watchHistory: [
-            "64a1b2c3d4e5f67890123456",
-            "64b2c3d4e5f6789012345678",
-            "64c3d4e5f678901234567890"
-        ],
-        // ...other fields
-        }
-      */
+        },
+        {
+            $unwind: "$watchHistory",
         },
         {
             $lookup: {
@@ -548,19 +548,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 localField: "watchHistory", // array of video ObjectIds
                 foreignField: "_id",
                 as: "watchHistory", // overwrite the field with full video docs
-
-                /*
-            we get
-            {
-                _id: "64a1b2c3d4e5f67890123456",
-                title: "Learn MongoDB",
-                owner: "9876543210abcdef12345678",   // ObjectId
-                duration: 1200,
-                thumbnail: "...",
-                views: 50000
-            }
-        */
-
                 pipeline: [
                     {
                         $lookup: {
@@ -578,23 +565,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                                 },
                             ],
                         },
-                        /*
-            we get
-            {
-                _id: "64a1b2c3d4e5f67890123456",
-                title: "Learn MongoDB",
-            owner: [
-                {
-                 _id: "9876543210abcdef12345678",
-                fullName: "Tech Guru",
-                username: "techguru",
-                avatar: "https://.../techguru.jpg"
-                }
-            ],
-            duration: 1200,
-            // ...
-            }
-            */
                     },
                     {
                         $addFields: {
@@ -602,63 +572,53 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                                 $first: "$owner",
                             },
                         },
-
-                        /*
-            we get
-            {
-                _id: "64a1b2c3d4e5f67890123456",
-                title: "Learn MongoDB",
-                owner: {
-                    fullName: "Tech Guru",
-                    username: "techguru",
-                    avatar: "https://.../techguru.jpg"
-                },
-                duration: 1200,
-                thumbnail: "...",
-                views: 50000,
-                createdAt: "..."
-                }
-            */
                     },
                 ],
             },
         },
+        {
+            $addFields: {
+                video: {
+                    $first: "$watchHistory",
+                },
+            },
+        },
+        {
+            $facet: {
+                videos: [
+                    { $skip: (pageInt - 1) * limitInt },
+                    { $limit: limitInt },
+                    {
+                        $project: {
+                            video: 1,
+                        },
+                    },
+                ],
+                count: [{ $count: "count" }],
+            },
+        },
     ]);
-    /*
-  final response 
-  {
-  _id: "507f1f77bcf86cd799439011",
-  watchHistory: [
-    {
-      _id: "64a1b2c3d4e5f67890123456",
-      title: "Learn MongoDB",
-      owner: { fullName: "Tech Guru", username: "techguru", avatar: "..." },
-      duration: 1200,
-      views: 50000,
-      thumbnail: "...",
-      // all other video fields
-    },
-    {
-      _id: "64b2c3d4e5f6789012345678",
-      title: "Node.js Auth",
-      owner: { fullName: "CodeMaster", username: "codemaster", avatar: "..." },
-      // ...
-    },
-    // ...and the 3rd video
-  ]
-  // all other original user fields are still there
-}
-  */
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                user[0].watchHistory,
-                "watch history fetches successfully",
-            ),
-        );
+    const totalVideos = user[0]?.count[0].count || 0;
+    //console.log(JSON.stringify(user, null, 2));
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                watchHistory: user[0].videos,
+                pagination: {
+                    currentPage: pageInt,
+                    limit: limitInt,
+                    totalVideos,
+                    totalPages: Math.ceil(totalVideos / limitInt),
+                    hasNextPage: pageInt * limitInt < totalVideos,
+                    hasPrevPage: pageInt > 1,
+                },
+            },
+            "watch history fetches successfully",
+        ),
+    );
 });
 
 const getDashboardStats = asyncHandler(async (req, res) => {
@@ -721,6 +681,53 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, stats[0], "Dashboard stats fetched"));
 });
 
+const isValidId = (Id, fieldName) => {
+    if (!Id?.trim() || !isValidObjectId(Id)) {
+        throw new ApiError(400, `invalid ${fieldName} Id`);
+    }
+};
+
+const toggleSubscriptionStatus = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const currentUser = req.user._id.toString();
+    isValidId(userId, "channel");
+    isValidId(currentUser, "user");
+    console.log("hi");
+
+    if (userId === currentUser) {
+        throw new ApiError(400, "cannot subscribe themself");
+    }
+
+    const users = await User.find({
+        _id: { $in: [userId, currentUser] },
+    }).select("_id");
+
+    if (users.length < 2) {
+        throw new ApiError(401, "invalid subscriber/subscription");
+    }
+
+    const status = await Subscription.findOneAndDelete({
+        subscriber: currentUser,
+        channel: userId,
+    });
+
+    let message;
+    let isSubscribed;
+    if (!status) {
+        await Subscription.create({
+            subscriber: currentUser,
+            channel: userId,
+        });
+        message = "subscribed successfully";
+        isSubscribed = true;
+    } else {
+        message = "unsubscribed successfully";
+        isSubscribed = false;
+    }
+
+    return res.status(200).json(new ApiResponse(200, isSubscribed, message));
+});
+
 export {
     registerUser,
     loginUser,
@@ -734,4 +741,5 @@ export {
     getWatchHistory,
     getCurrentUser,
     getDashboardStats,
+    toggleSubscriptionStatus,
 };

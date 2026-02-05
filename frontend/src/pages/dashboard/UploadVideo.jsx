@@ -101,7 +101,7 @@ const UploadVideo = () => {
 
             // Redirect after brief delay
             setTimeout(() => {
-                navigate(`/video/${response.data.data._id}`); // Redirect to new video
+                navigate(`/watch/${response.data.data._id}`); // Redirect to new video
             }, 2000);
         } catch (error) {
             console.error("Upload failed", error);

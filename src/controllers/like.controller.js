@@ -15,13 +15,13 @@ const toggleFunction = (paramName, fieldname, modelName) =>
             throw new ApiError(400, `invalid ${fieldname} id`);
         }
 
-        const object = await modelName.findById(Id);
+        const item = await modelName.findById(Id);
 
-        if (!object) {
+        if (!item) {
             throw new ApiError(404, `${fieldname} not found`);
         }
 
-        if (fieldname === "video" && !object.isPublished) {
+        if (fieldname === "video" && !item.isPublished) {
             throw new ApiError(404, `${fieldname} not found`);
         }
 
@@ -55,6 +55,45 @@ const toggleVideoLike = toggleFunction("videoId", "video", Video);
 const toggleCommentLike = toggleFunction("commentId", "comment", Comment);
 
 const togglePostLike = toggleFunction("postId", "post", Post);
+
+const fetchFunction = (paramName, fieldName, modelName) =>
+    asyncHandler(async (req, res) => {
+        const Id = req.params[paramName];
+        const userId = req.user._id;
+
+        if (Id?.trim() === "" || !isValidObjectId(Id)) {
+            throw new ApiError(400, `invalid ${fieldName} id`);
+        }
+
+        const item = await modelName.findById(Id);
+
+        if (!item) {
+            throw new ApiError(404, `${fieldName} not found`);
+        }
+
+        if (fieldName === "video" && !item.isPublished) {
+            throw new ApiError(404, `${fieldName} not found`);
+        }
+
+        const [likeCount, isLiked] = await Promise.all([
+            Like.countDocuments({ [fieldName]: Id }),
+            Like.findOne({ likedBy: userId, [fieldName]: Id }),
+        ]);
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    { likeCount, isLiked: !!isLiked },
+                    "likes fetched successfully",
+                ),
+            );
+    });
+
+const fetchVideoLike = fetchFunction("videoId", "video", Video);
+const fetchCommentLike = fetchFunction("commentId", "comment", Comment);
+const fetchPostLike = fetchFunction("postId", "post", Post);
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
@@ -134,4 +173,12 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         );
 });
 
-export { toggleCommentLike, togglePostLike, toggleVideoLike, getLikedVideos };
+export {
+    toggleCommentLike,
+    togglePostLike,
+    toggleVideoLike,
+    getLikedVideos,
+    fetchCommentLike,
+    fetchPostLike,
+    fetchVideoLike,
+};

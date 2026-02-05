@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import useAuth from "../hooks/useAuth.hooks.js";
 
 const ChannelProfileCard = ({ channelData, onToggleSubscribe }) => {
     // Local state to handle optimistic UI updates when clicking subscribe
     const [isSubscribed, setIsSubscribed] = useState(channelData.isSubscribed);
     const [subCount, setSubCount] = useState(channelData.subscribersCount);
+    const { user } = useAuth();
 
     const handleSubscribeClick = () => {
         // Optimistic update: toggle UI immediately
@@ -99,10 +101,11 @@ const ChannelProfileCard = ({ channelData, onToggleSubscribe }) => {
                     </div>
 
                     {/* 3. Action Button */}
-                    <div className="mt-6 md:mt-0 md:mb-2 w-full md:w-auto">
-                        <button
-                            onClick={handleSubscribeClick}
-                            className={`
+                    {user.username !== channelData.username && (
+                        <div className="mt-6 md:mt-0 md:mb-2 w-full md:w-auto">
+                            <button
+                                onClick={handleSubscribeClick}
+                                className={`
                                 flex items-center justify-center gap-2 px-6 py-2 rounded-full font-semibold transition-all duration-200 w-full md:w-auto
                                 ${
                                     isSubscribed
@@ -110,47 +113,48 @@ const ChannelProfileCard = ({ channelData, onToggleSubscribe }) => {
                                         : "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg"
                                 }
                             `}
-                        >
-                            {isSubscribed ? (
-                                <>
-                                    {/* Standard Bell SVG */}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="w-4 h-4"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                                    </svg>
-                                    Subscribed
-                                </>
-                            ) : (
-                                <>
-                                    {/* Standard User+ SVG */}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="w-4 h-4"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                        <circle cx="9" cy="7" r="4" />
-                                        <polyline points="16 11 18 13 22 9" />
-                                    </svg>
-                                    Subscribe
-                                </>
-                            )}
-                        </button>
-                    </div>
+                            >
+                                {isSubscribed ? (
+                                    <>
+                                        {/* Standard Bell SVG */}
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="w-4 h-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                        </svg>
+                                        Subscribed
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Standard User+ SVG */}
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="w-4 h-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                            <circle cx="9" cy="7" r="4" />
+                                            <polyline points="16 11 18 13 22 9" />
+                                        </svg>
+                                        Subscribe
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

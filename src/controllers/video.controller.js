@@ -31,6 +31,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
     if (userId?.trim() && userId !== req.user._id.toString()) {
         matchStage.isPublished = true;
     }
+    if (userId?.trim() === undefined) {
+        matchStage.isPublished = true;
+    }
 
     const pageInt = parseInt(page) || 1;
     const limitInt = Math.min(parseInt(limit) || 10, 100);
@@ -87,6 +90,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 views: 1,
                 owner: 1,
                 createdAt: 1,
+                isPublished: 1,
             },
         },
     ]);
