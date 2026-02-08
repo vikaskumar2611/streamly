@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose, { isValidObjectId } from "mongoose";
+import { Subscription } from "../models/subscription.model.js";
 
 const isValidId = (Id, fieldName) => {
     if (!Id?.trim() || !isValidObjectId(Id)) {
@@ -12,8 +13,6 @@ const isValidId = (Id, fieldName) => {
 
 const createPost = asyncHandler(async (req, res) => {
     const { poll, options } = req.body;
-
-    text;
 
     if (!poll?.trim()) {
         throw new ApiError(400, "all fields are required");
@@ -47,15 +46,29 @@ const createPost = asyncHandler(async (req, res) => {
 });
 
 const getUserPosts = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+    const { channelId } = req.params;
+    const userId = req.user._id;
 
-    text;
+    let response = [];
 
-    isValidId(userId, "user");
+    if (channelId?.trim() && channelId !== "subscriptions") {
+        isValidId(channelId, "channel");
+        response.push(new mongoose.Types.ObjectId(channelId));
+    } else {
+        const subscriptions = await Subscription.find({
+            subscriber: userId,
+        }).select("-subscriber -createdAt -updatedAt");
+
+        response = subscriptions.map((obj) => obj.channel);
+    }
+    //response.push(userId);
+    //console.log(response);
+
+    //console.log(JSON.stringify(subscriptions, null, 2));
 
     const posts = await Post.aggregate([
         {
-            $match: { owner: new mongoose.Types.ObjectId(userId) },
+            $match: { owner: { $in: response } },
         },
         {
             $sort: { createdAt: -1 },
@@ -89,8 +102,6 @@ const getUserPosts = asyncHandler(async (req, res) => {
 
 const updatePost = asyncHandler(async (req, res) => {
     const { postId } = req.params;
-
-    text;
 
     isValidId(postId, "post");
     const { poll, options } = req.body;
@@ -136,8 +147,6 @@ const updatePost = asyncHandler(async (req, res) => {
 const deletePost = asyncHandler(async (req, res) => {
     const { postId } = req.params;
 
-    text;
-
     isValidId(postId);
     const post = await Post.findById(postId);
 
@@ -159,8 +168,6 @@ const deletePost = asyncHandler(async (req, res) => {
 const voteOnPost = asyncHandler(async (req, res) => {
     const { postId } = req.params;
     const { optionIndex } = req.body;
-
-    text;
 
     isValidId(postId, "post");
 

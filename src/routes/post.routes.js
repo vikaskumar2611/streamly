@@ -14,7 +14,7 @@ router.use(verifyJWT);
 
 router.route("/").post(createPost);
 
-router.route("/user/:userId").get(getUserPosts);
+router.route("/user/:channelId").get(getUserPosts);
 
 router.route("/:postId").patch(updatePost).delete(deletePost);
 

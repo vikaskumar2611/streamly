@@ -1,30 +1,26 @@
-// EditVideo.jsx
-import React, { useState, useEffect, useRef } from "react";
+// EditPost.jsx
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useAuth from "../../hooks/useAuth.hooks";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate.hooks";
 import { selectTheme } from "../../features/theme/themeSlice";
 
-const EditVideo = () => {
-    const { videoId } = useParams();
+const EditPost = () => {
+    const { postId } = useParams();
     const navigate = useNavigate();
     const axiosPrivate = useAxiosPrivate();
     const { user } = useAuth();
     const theme = useSelector(selectTheme);
     const isDark = theme === "dark";
 
-    const thumbnailInputRef = useRef(null);
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [currentThumbnail, setCurrentThumbnail] = useState("");
-    const [newThumbnail, setNewThumbnail] = useState(null);
-    const [thumbnailPreview, setThumbnailPreview] = useState("");
+    const [poll, setPoll] = useState("");
+    const [options, setOptions] = useState([""]);
+    const [totalVotes, setTotalVotes] = useState(0);
 
     // Theme styles
     const themeStyles = {
@@ -37,12 +33,9 @@ const EditVideo = () => {
             textFaded: "text-gray-500",
             input: "bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/20",
             label: "text-gray-300",
-            thumbnailZone:
-                "border-gray-600 hover:border-blue-500 bg-gray-800/50",
-            thumbnailZoneActive: "border-blue-500 bg-blue-500/10",
             danger: "text-red-400",
             dangerBg: "bg-red-500/10 border-red-500/30 text-red-400",
-            successBg: "bg-green-500/10 border-green-500/30 text-green-400",
+            warningBg: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
             cancelBtn:
                 "bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-700",
             saveBtn:
@@ -50,6 +43,11 @@ const EditVideo = () => {
             deleteBtn:
                 "bg-red-600/10 hover:bg-red-600/20 text-red-400 border-red-500/30",
             backBtn: "text-gray-400 hover:text-white",
+            addBtn: "border-gray-700 hover:border-blue-500 text-gray-400 hover:text-blue-400",
+            removeBtn: "text-gray-500 hover:text-red-400",
+            optionIndex: "bg-gray-800 text-gray-400",
+            badge: "bg-gray-800 text-gray-400",
+            divider: "border-gray-800",
         },
         light: {
             bg: "bg-gray-50",
@@ -60,137 +58,136 @@ const EditVideo = () => {
             textFaded: "text-gray-400",
             input: "bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/20",
             label: "text-gray-700",
-            thumbnailZone: "border-gray-300 hover:border-blue-400 bg-gray-50",
-            thumbnailZoneActive: "border-blue-500 bg-blue-50",
             danger: "text-red-600",
             dangerBg: "bg-red-50 border-red-200 text-red-600",
-            successBg: "bg-green-50 border-green-200 text-green-600",
+            warningBg: "bg-yellow-50 border-yellow-200 text-yellow-700",
             cancelBtn:
                 "bg-white hover:bg-gray-50 text-gray-700 border-gray-300",
             saveBtn:
                 "bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50",
             deleteBtn: "bg-red-50 hover:bg-red-100 text-red-600 border-red-200",
             backBtn: "text-gray-500 hover:text-gray-900",
+            addBtn: "border-gray-300 hover:border-blue-400 text-gray-400 hover:text-blue-500",
+            removeBtn: "text-gray-400 hover:text-red-500",
+            optionIndex: "bg-gray-100 text-gray-500",
+            badge: "bg-gray-100 text-gray-500",
+            divider: "border-gray-100",
         },
     };
 
     const t = isDark ? themeStyles.dark : themeStyles.light;
 
-    // Fetch video data
+    // Fetch post data
     useEffect(() => {
-        const fetchVideo = async () => {
+        const fetchPost = async () => {
             try {
-                const response = await axiosPrivate.get(`/video/${videoId}`);
-                const video = response.data.data;
+                const response = await axiosPrivate.get(
+                    `/post/user/${user?._id}`,
+                );
+                const posts = response.data.data || [];
+                const post = posts.find((p) => p._id === postId);
 
-                // Check ownership
-                if (video.owner?._id !== user?._id) {
-                    setError("You are not authorized to edit this video.");
+                if (!post) {
+                    setError("Post not found.");
                     setLoading(false);
                     return;
                 }
 
-                setTitle(video.title || "");
-                setDescription(video.description || "");
-                setCurrentThumbnail(video.thumbnail || "");
+                // Check ownership
+                if (post.owner?._id !== user?._id) {
+                    setError("You are not authorized to edit this post.");
+                    setLoading(false);
+                    return;
+                }
+
+                setPoll(post.poll || "");
+                setOptions(post.options?.map((opt) => opt.text || "") || [""]);
+                setTotalVotes(
+                    post.options?.reduce(
+                        (sum, opt) => sum + (opt.votes || 0),
+                        0,
+                    ) || 0,
+                );
             } catch (err) {
-                console.error("Error fetching video:", err);
-                setError("Failed to load video details.");
+                console.error("Error fetching post:", err);
+                setError("Failed to load post details.");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (videoId) fetchVideo();
-    }, [videoId, axiosPrivate, user]);
+        if (postId && user?._id) fetchPost();
+    }, [postId, axiosPrivate, user]);
 
-    // Handle thumbnail selection
-    const handleThumbnailChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Validate file type
-        const validTypes = ["image/jpeg", "image/png", "image/webp"];
-        if (!validTypes.includes(file.type)) {
-            alert("Please select a valid image file (JPEG, PNG, or WebP)");
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Thumbnail must be less than 5MB");
-            return;
-        }
-
-        setNewThumbnail(file);
-        setThumbnailPreview(URL.createObjectURL(file));
+    // Option handlers
+    const handleOptionChange = (index, value) => {
+        const updated = [...options];
+        updated[index] = value;
+        setOptions(updated);
     };
 
-    // Cleanup preview URL
-    useEffect(() => {
-        return () => {
-            if (thumbnailPreview) {
-                URL.revokeObjectURL(thumbnailPreview);
-            }
-        };
-    }, [thumbnailPreview]);
-
-    const handleRemoveNewThumbnail = () => {
-        setNewThumbnail(null);
-        setThumbnailPreview("");
-        if (thumbnailInputRef.current) {
-            thumbnailInputRef.current.value = "";
+    const handleAddOption = () => {
+        if (options.length >= 10) {
+            alert("Maximum 10 options allowed.");
+            return;
         }
+        setOptions([...options, ""]);
     };
 
-    // Handle save
+    const handleRemoveOption = (index) => {
+        if (options.length <= 1) {
+            alert("At least one option is required.");
+            return;
+        }
+        setOptions(options.filter((_, i) => i !== index));
+    };
+
+    // Save handler
     const handleSave = async (e) => {
         e.preventDefault();
 
-        if (!title.trim()) {
-            alert("Title is required");
+        if (!poll.trim()) {
+            alert("Poll question is required.");
+            return;
+        }
+
+        const filledOptions = options.filter((opt) => opt.trim() !== "");
+        if (filledOptions.length < 2) {
+            alert("At least 2 options are required.");
             return;
         }
 
         setSaving(true);
         try {
-            const formData = new FormData();
-            formData.append("title", title.trim());
-            formData.append("description", description.trim());
-
-            if (newThumbnail) {
-                formData.append("thumbnail", newThumbnail);
-            }
-
-            await axiosPrivate.patch(`/video/${videoId}`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+            await axiosPrivate.patch(`/post/${postId}`, {
+                poll: poll.trim(),
+                options: filledOptions.map((text) => text.trim()),
             });
-
             navigate(-1);
         } catch (err) {
-            console.error("Error updating video:", err);
+            console.error("Error updating post:", err);
             alert(
                 err.response?.data?.message ||
-                    "Failed to update video. Please try again.",
+                    "Failed to update post. Please try again.",
             );
         } finally {
             setSaving(false);
         }
     };
 
-    // Handle delete
+    // Delete handler
     const handleDelete = async () => {
         const confirmed = window.confirm(
-            "Are you sure you want to delete this video? This action cannot be undone.",
+            "Are you sure you want to delete this post? This action cannot be undone.",
         );
         if (!confirmed) return;
 
         try {
-            await axiosPrivate.delete(`/video/${videoId}`);
-            navigate("/", { replace: true });
+            await axiosPrivate.delete(`/post/${postId}`);
+            navigate(-1, { replace: true });
         } catch (err) {
-            console.error("Error deleting video:", err);
-            alert("Failed to delete video. Please try again.");
+            console.error("Error deleting post:", err);
+            alert("Failed to delete post. Please try again.");
         }
     };
 
@@ -203,7 +200,7 @@ const EditVideo = () => {
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                     <p className={`${t.textMuted} text-sm`}>
-                        Loading video details...
+                        Loading post details...
                     </p>
                 </div>
             </div>
@@ -249,6 +246,8 @@ const EditVideo = () => {
         );
     }
 
+    const filledCount = options.filter((opt) => opt.trim() !== "").length;
+
     // --- MAIN FORM ---
     return (
         <div className={`min-h-screen ${t.bg} py-8 px-4`}>
@@ -276,169 +275,179 @@ const EditVideo = () => {
                     </button>
                     <div>
                         <h1 className={`${t.text} text-2xl font-bold`}>
-                            Edit Video
+                            Edit Post
                         </h1>
                         <p className={`${t.textMuted} text-sm mt-1`}>
-                            Update your video details
+                            Update your poll details
                         </p>
                     </div>
                 </div>
+
+                {/* Votes Warning */}
+                {totalVotes > 0 && (
+                    <div
+                        className={`${t.warningBg} border rounded-lg p-4 mb-6 flex items-start gap-3`}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-5 h-5 shrink-0 mt-0.5"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                            />
+                        </svg>
+                        <div>
+                            <p className="text-sm font-medium">
+                                This poll has {totalVotes} vote
+                                {totalVotes !== 1 ? "s" : ""}
+                            </p>
+                            <p className="text-xs mt-1 opacity-80">
+                                Editing options may affect existing vote data.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Form Card */}
                 <form onSubmit={handleSave}>
                     <div
                         className={`${t.card} border rounded-xl overflow-hidden`}
                     >
-                        {/* Thumbnail Section */}
-                        <div className="p-6 space-y-4">
+                        {/* Poll Question */}
+                        <div className="p-6 space-y-2">
                             <label
+                                htmlFor="poll"
                                 className={`block text-sm font-medium ${t.label}`}
                             >
-                                Thumbnail
+                                Poll Question{" "}
+                                <span className="text-red-500">*</span>
                             </label>
+                            <textarea
+                                id="poll"
+                                value={poll}
+                                onChange={(e) => setPoll(e.target.value)}
+                                placeholder="Ask your audience something..."
+                                rows={3}
+                                maxLength={500}
+                                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all focus:ring-2 resize-y min-h-[80px] ${t.input}`}
+                            />
+                            <div
+                                className={`flex justify-end text-xs ${t.textFaded}`}
+                            >
+                                {poll.length}/500
+                            </div>
+                        </div>
 
-                            {/* Current / Preview Thumbnail */}
-                            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-800">
-                                <img
-                                    src={thumbnailPreview || currentThumbnail}
-                                    alt="Thumbnail"
-                                    className="w-full h-full object-cover"
-                                />
+                        {/* Divider */}
+                        <div className={`border-t ${t.divider}`} />
 
-                                {/* Overlay buttons */}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            thumbnailInputRef.current?.click()
-                                        }
-                                        className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        {/* Options Section */}
+                        <div className="p-6 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label
+                                    className={`block text-sm font-medium ${t.label}`}
+                                >
+                                    Options{" "}
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <span
+                                    className={`text-xs ${t.badge} px-2 py-1 rounded-full`}
+                                >
+                                    {filledCount} of {options.length}
+                                    {filledCount < 2 && " (min 2)"}
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                {options.map((option, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-2"
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={1.5}
-                                            stroke="currentColor"
-                                            className="w-4 h-4"
+                                        {/* Option Index */}
+                                        <span
+                                            className={`${t.optionIndex} w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0`}
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
-                                            />
-                                        </svg>
-                                        Change Thumbnail
-                                    </button>
-                                </div>
-
-                                {/* New thumbnail badge */}
-                                {newThumbnail && (
-                                    <div className="absolute top-2 right-2 flex items-center gap-2">
-                                        <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded font-medium">
-                                            New
+                                            {index + 1}
                                         </span>
+
+                                        {/* Option Input */}
+                                        <input
+                                            type="text"
+                                            value={option}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    index,
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder={`Option ${index + 1}...`}
+                                            maxLength={200}
+                                            className={`flex-1 px-4 py-2.5 rounded-lg border outline-none transition-all focus:ring-2 ${t.input}`}
+                                        />
+
+                                        {/* Remove Button */}
                                         <button
                                             type="button"
-                                            onClick={handleRemoveNewThumbnail}
-                                            className="p-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                                            onClick={() =>
+                                                handleRemoveOption(index)
+                                            }
+                                            disabled={options.length <= 1}
+                                            className={`p-2 rounded-lg transition-colors ${t.removeBtn} disabled:opacity-30 disabled:cursor-not-allowed`}
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 fill="none"
                                                 viewBox="0 0 24 24"
-                                                strokeWidth={2}
+                                                strokeWidth={1.5}
                                                 stroke="currentColor"
-                                                className="w-3 h-3"
+                                                className="w-4 h-4"
                                             >
                                                 <path
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
-                                                    d="M6 18L18 6M6 6l12 12"
+                                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
                                                 />
                                             </svg>
                                         </button>
                                     </div>
-                                )}
+                                ))}
                             </div>
 
-                            <input
-                                ref={thumbnailInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={handleThumbnailChange}
-                                className="hidden"
-                            />
-
-                            <p className={`text-xs ${t.textFaded}`}>
-                                Recommended: 1280×720 (16:9). Max 5MB. JPEG,
-                                PNG, or WebP.
-                            </p>
+                            {/* Add Option Button */}
+                            {options.length < 10 && (
+                                <button
+                                    type="button"
+                                    onClick={handleAddOption}
+                                    className={`w-full py-2.5 rounded-lg border-2 border-dashed transition-all text-sm font-medium flex items-center justify-center gap-2 ${t.addBtn}`}
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={2}
+                                        stroke="currentColor"
+                                        className="w-4 h-4"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M12 4.5v15m7.5-7.5h-15"
+                                        />
+                                    </svg>
+                                    Add Option ({options.length}/10)
+                                </button>
+                            )}
                         </div>
 
                         {/* Divider */}
-                        <div
-                            className={`border-t ${isDark ? "border-gray-800" : "border-gray-100"}`}
-                        />
-
-                        {/* Title & Description */}
-                        <div className="p-6 space-y-5">
-                            {/* Title */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="title"
-                                    className={`block text-sm font-medium ${t.label}`}
-                                >
-                                    Title{" "}
-                                    <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    id="title"
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Enter video title..."
-                                    maxLength={100}
-                                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all focus:ring-2 ${t.input}`}
-                                />
-                                <div
-                                    className={`flex justify-end text-xs ${t.textFaded}`}
-                                >
-                                    {title.length}/100
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="description"
-                                    className={`block text-sm font-medium ${t.label}`}
-                                >
-                                    Description
-                                </label>
-                                <textarea
-                                    id="description"
-                                    value={description}
-                                    onChange={(e) =>
-                                        setDescription(e.target.value)
-                                    }
-                                    placeholder="Tell viewers about your video..."
-                                    rows={5}
-                                    maxLength={5000}
-                                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all focus:ring-2 resize-y min-h-[120px] ${t.input}`}
-                                />
-                                <div
-                                    className={`flex justify-end text-xs ${t.textFaded}`}
-                                >
-                                    {description.length}/5000
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Divider */}
-                        <div
-                            className={`border-t ${isDark ? "border-gray-800" : "border-gray-100"}`}
-                        />
+                        <div className={`border-t ${t.divider}`} />
 
                         {/* Action Buttons */}
                         <div className="p-6 flex flex-col sm:flex-row justify-between gap-4">
@@ -462,7 +471,7 @@ const EditVideo = () => {
                                         d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
                                     />
                                 </svg>
-                                Delete Video
+                                Delete Post
                             </button>
 
                             {/* Cancel & Save */}
@@ -476,7 +485,11 @@ const EditVideo = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={saving || !title.trim()}
+                                    disabled={
+                                        saving ||
+                                        !poll.trim() ||
+                                        filledCount < 2
+                                    }
                                     className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${t.saveBtn}`}
                                 >
                                     {saving ? (
@@ -513,4 +526,4 @@ const EditVideo = () => {
     );
 };
 
-export default EditVideo;
+export default EditPost;

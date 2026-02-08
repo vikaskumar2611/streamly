@@ -16,6 +16,11 @@ import Myplaylists from "./pages/playlist/Myplaylists";
 import ViewPlaylist from "./pages/playlist/ViewPlaylist";
 import Home from "./pages/core/Home";
 import SearchResults from "./pages/core/SearchResults";
+import Subscriptions from "./pages/core/Subscriptions";
+import EditVideo from "./pages/dashboard/EditVideo";
+import EditPost from "./pages/dashboard/EditPost";
+import CreatePost from "./pages/user/CreatePost";
+import AboutPage from "./pages/core/AboutPage";
 
 function App() {
     return (
@@ -23,6 +28,7 @@ function App() {
             <Route path="/" element={<PersistLogin />}>
                 {/* Public Routes */}
                 <Route element={<Layout />}>
+                    <Route path="about" element={<AboutPage />} />
                     <Route element={<RedirectIfAuthenticated />}>
                         <Route path="login" element={<Login />} />
                         <Route path="register" element={<Register />} />
@@ -30,7 +36,7 @@ function App() {
                     {/* Protected Routes */}
 
                     <Route element={<RequireAuth />}>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/" element={<Home />} />
                         <Route path="home" element={<Home />} />
                         <Route path="/watch/:videoId" element={<Watch />} />
                         <Route path="/results" element={<SearchResults />} />
@@ -57,6 +63,11 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />{" "}
                         {/* GET /users/dashboard */}
                         <Route path="/upload" element={<UploadVideo />} />{" "}
+                        <Route path="/create/post" element={<CreatePost />} />
+                        <Route
+                            path="/subscriptions"
+                            element={<Subscriptions />}
+                        />
                         {/* POST /videos */}
                         {/* 5. Account Settings */}
                         <Route path="/settings" element={<Settings />} />{" "}
@@ -66,6 +77,9 @@ function App() {
                             element={<ChangePassword />}
                         />
                     </Route>
+
+                    <Route path="edit/video/:videoId" element={<EditVideo />} />
+                    <Route path="edit/post/:postId" element={<EditPost />} />
                 </Route>
             </Route>
         </Routes>

@@ -549,6 +549,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 foreignField: "_id",
                 as: "watchHistory", // overwrite the field with full video docs
                 pipeline: [
+                    { $match: { isPublished: true } },
                     {
                         $lookup: {
                             from: "users",
@@ -588,25 +589,26 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 videos: [
                     { $skip: (pageInt - 1) * limitInt },
                     { $limit: limitInt },
+                    { $match: { video: { $ne: null } } },
                     {
                         $project: {
                             video: 1,
                         },
                     },
                 ],
-                count: [{ $count: "count" }],
+                count: [{ $unwind: "$watchHistory" }, { $count: "count" }],
             },
         },
     ]);
 
-    const totalVideos = user[0]?.count[0].count || 0;
+    const totalVideos = user[0]?.count[0]?.count || 0;
     //console.log(JSON.stringify(user, null, 2));
 
     return res.status(200).json(
         new ApiResponse(
             200,
             {
-                watchHistory: user[0].videos,
+                watchHistory: user[0]?.videos,
                 pagination: {
                     currentPage: pageInt,
                     limit: limitInt,
@@ -616,7 +618,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                     hasPrevPage: pageInt > 1,
                 },
             },
-            "watch history fetches successfully",
+            "watch history fetched successfully",
         ),
     );
 });
@@ -678,7 +680,13 @@ const getDashboardStats = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, stats[0], "Dashboard stats fetched"));
+        .json(
+            new ApiResponse(
+                200,
+                stats[0],
+                "Dashboard stats fetched successfully",
+            ),
+        );
 });
 
 const isValidId = (Id, fieldName) => {
@@ -692,7 +700,6 @@ const toggleSubscriptionStatus = asyncHandler(async (req, res) => {
     const currentUser = req.user._id.toString();
     isValidId(userId, "channel");
     isValidId(currentUser, "user");
-    console.log("hi");
 
     if (userId === currentUser) {
         throw new ApiError(400, "cannot subscribe themself");

@@ -1,14 +1,33 @@
-// components/VideoGrid.jsx
+// VideoGrid.jsx
 import React from "react";
+import { useSelector } from "react-redux";
 import VideoCard from "./VideoCard";
+import { selectTheme } from "../features/theme/themeSlice";
 
 const VideoGrid = ({
     videos = [],
     loading = false,
     emptyMessage = "No videos found",
 }) => {
-    // Standard Responsive Grid Layout
-    // Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols, Large Screen: 4 cols
+    const theme = useSelector(selectTheme);
+    const isDark = theme === "dark";
+
+    // Theme configuration object
+    const themeStyles = {
+        dark: {
+            skeleton: "bg-gray-700",
+            emptyText: "text-gray-400",
+            emptyIcon: "text-gray-400",
+        },
+        light: {
+            skeleton: "bg-gray-300",
+            emptyText: "text-gray-500",
+            emptyIcon: "text-gray-400",
+        },
+    };
+
+    const t = isDark ? themeStyles.dark : themeStyles.light;
+
     const gridClasses =
         "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
 
@@ -17,7 +36,7 @@ const VideoGrid = ({
         return (
             <div className={gridClasses}>
                 {Array.from({ length: 8 }).map((_, index) => (
-                    <VideoCardSkeleton key={index} />
+                    <VideoCardSkeleton key={index} themeStyles={t} />
                 ))}
             </div>
         );
@@ -26,9 +45,11 @@ const VideoGrid = ({
     // 2. Empty State
     if (!videos || videos.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <div
+                className={`flex flex-col items-center justify-center py-20 ${t.emptyText}`}
+            >
                 <svg
-                    className="w-16 h-16 mb-4 opacity-50"
+                    className={`w-16 h-16 mb-4 opacity-50 ${t.emptyIcon}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -56,22 +77,26 @@ const VideoGrid = ({
 };
 
 // Simplified Skeleton to match your new VideoCard
-const VideoCardSkeleton = () => {
+const VideoCardSkeleton = ({ themeStyles }) => {
+    const t = themeStyles;
+
     return (
         <div className="flex flex-col gap-3 animate-pulse">
             {/* Thumbnail Box */}
-            <div className="w-full aspect-video bg-gray-700 rounded-xl" />
+            <div className={`w-full aspect-video ${t.skeleton} rounded-xl`} />
 
             <div className="flex gap-3">
                 {/* Avatar Circle */}
-                <div className="w-9 h-9 bg-gray-700 rounded-full shrink-0" />
+                <div
+                    className={`w-9 h-9 ${t.skeleton} rounded-full shrink-0`}
+                />
 
                 {/* Text Lines */}
                 <div className="flex-1 flex flex-col gap-2 pt-1">
                     {/* Title Line */}
-                    <div className="h-4 bg-gray-700 rounded w-11/12" />
+                    <div className={`h-4 ${t.skeleton} rounded w-11/12`} />
                     {/* Meta Line */}
-                    <div className="h-3 bg-gray-700 rounded w-2/3" />
+                    <div className={`h-3 ${t.skeleton} rounded w-2/3`} />
                 </div>
             </div>
         </div>
