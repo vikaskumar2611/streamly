@@ -339,7 +339,7 @@ const Layout = () => {
                                 onChange={(e) => setSearch(e.target.value)}
                                 onFocus={() => setSearchFocused(true)}
                                 onBlur={() => setSearchFocused(false)}
-                                placeholder="Search videos, channels..."
+                                placeholder="Search videos"
                                 className={`
                                     w-full px-3 py-1.5 text-sm outline-none bg-transparent transition-colors
                                     ${
