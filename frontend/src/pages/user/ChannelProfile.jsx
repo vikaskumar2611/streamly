@@ -108,7 +108,7 @@ const UserChannelPage = () => {
             paginationText: "text-gray-300",
             emptyState: "text-gray-500",
             emptyIconBg: "bg-gray-800/50",
-            tabActive: "border-purple-500 text-purple-400 bg-purple-500/5",
+            tabActive: "border-blue-500 text-blue-400 bg-blue-500/5",
             tabInactive:
                 "border-transparent text-gray-500 hover:text-gray-300 hover:bg-gray-800/40",
             tabBar: "bg-gray-900/50 border-gray-800/60",
@@ -129,7 +129,7 @@ const UserChannelPage = () => {
             paginationText: "text-gray-600",
             emptyState: "text-gray-400",
             emptyIconBg: "bg-gray-100",
-            tabActive: "border-purple-500 text-purple-600 bg-purple-50",
+            tabActive: "border-blue-500 text-blue-600 bg-blue-50",
             tabInactive:
                 "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100",
             tabBar: "bg-white/80 border-gray-200",

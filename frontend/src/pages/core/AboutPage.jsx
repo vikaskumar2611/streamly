@@ -876,7 +876,6 @@ const About = () => {
             <div className={`border-t ${t.divider} py-8`}>
                 <p className={`text-center text-sm ${t.textFaded}`}>
                     © {new Date().getFullYear()} Streamly. All rights reserved.
-                    Made with ❤️ for creators everywhere.
                 </p>
             </div>
         </div>

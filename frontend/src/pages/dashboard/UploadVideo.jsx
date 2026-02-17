@@ -23,14 +23,14 @@ const UploadVideo = () => {
             border: "border-gray-800",
             label: "text-gray-300",
             input: "border-gray-700 bg-gray-800 text-white placeholder-gray-500",
-            inputFocus: "focus:ring-purple-500 focus:border-purple-500",
+            inputFocus: "focus:ring-blue-500 focus:border-blue-500",
             dropzone: "border-gray-700 hover:bg-gray-800",
-            dropzoneActive: "border-purple-500 bg-purple-900/20",
-            dropzoneIcon: "text-gray-500 hover:text-purple-400",
+            dropzoneActive: "border-blue-500 bg-blue-900/20",
+            dropzoneIcon: "text-gray-500 hover:text-blue-400",
             dropzoneText: "text-gray-400",
             thumbnailDropzone: "border-gray-700 hover:bg-gray-800",
             progressBg: "bg-gray-700",
-            progressBar: "bg-purple-600",
+            progressBar: "bg-blue-600",
             progressText: "text-gray-300",
             alertError: "bg-red-900/50 text-red-300 border border-red-800",
             alertSuccess:
@@ -50,14 +50,14 @@ const UploadVideo = () => {
             border: "border-gray-200",
             label: "text-gray-700",
             input: "border-gray-300 bg-white text-gray-900 placeholder-gray-400",
-            inputFocus: "focus:ring-purple-500 focus:border-purple-500",
+            inputFocus: "focus:ring-blue-500 focus:border-blue-500",
             dropzone: "border-gray-300 hover:bg-gray-50",
-            dropzoneActive: "border-purple-500 bg-purple-50",
-            dropzoneIcon: "text-gray-400 hover:text-purple-600",
+            dropzoneActive: "border-blue-500 bg-blue-50",
+            dropzoneIcon: "text-gray-400 hover:text-blue-600",
             dropzoneText: "text-gray-500",
             thumbnailDropzone: "border-gray-300 hover:bg-gray-50",
             progressBg: "bg-gray-200",
-            progressBar: "bg-purple-600",
+            progressBar: "bg-blue-600",
             progressText: "text-gray-700",
             alertError: "bg-red-100 text-red-700 border border-red-200",
             alertSuccess: "bg-green-100 text-green-700 border border-green-200",
@@ -235,10 +235,10 @@ const UploadVideo = () => {
                     className={`p-4 sm:p-6 border-b ${t.header} flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 transition-colors duration-300`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex-shrink-0">
+                        <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex-shrink-0">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400"
+                                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -662,7 +662,7 @@ const UploadVideo = () => {
                                         !title.trim() ||
                                         !description.trim()
                                     }
-                                    className="w-full sm:flex-[2] py-2.5 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm sm:text-base rounded-lg shadow-md transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                                    className="w-full sm:flex-[2] py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base rounded-lg shadow-md transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"

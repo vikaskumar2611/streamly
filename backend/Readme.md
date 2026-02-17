@@ -1,4 +1,4 @@
-# [Streamly]
+# Streamly
 
 A full-stack MERN application (MongoDB, Express, React, Node.js).
 
@@ -22,8 +22,9 @@ public/private playlists with video organization.
 **Frontend:**
 
 - React
-- [Vite]
-- [Tailwind CSS]
+- Vite
+- Tailwind CSS
+- Axios
 - Netlify (Deployment)
 
 **Backend:**
@@ -35,9 +36,9 @@ public/private playlists with video organization.
 
 ## ✨ Features
 
-- [Secure: User Authentication using JWT Access and Refresh Token with secured routes (Login/Register)]
-- [Efficient: utilised Cloudinary and Multer for video storage and streaming.]
-- [Engaging : Various features with which user can interact with website]
+- Secure: User Authentication using JWT Access and Refresh Token with secured routes (Login/Register)
+- Efficient: utilised Cloudinary and Multer for video storage and streaming.
+- Engaging : Various features with which user can interact with website
 
 ## 💻 Run Locally
 

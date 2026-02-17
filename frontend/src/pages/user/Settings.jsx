@@ -22,7 +22,7 @@ const Settings = () => {
             cardHeader: "border-gray-800",
             label: "text-gray-300",
             input: "border-gray-700 bg-gray-800 text-white placeholder-gray-500",
-            inputFocus: "focus:ring-purple-500 focus:border-purple-500",
+            inputFocus: "focus:ring-blue-500 focus:border-blue-500",
             accordionBtn: "bg-gray-900 hover:bg-gray-800",
             accordionContent: "border-gray-800",
             chevron: "text-gray-400",
@@ -31,7 +31,7 @@ const Settings = () => {
             alertSuccess:
                 "bg-green-900/50 text-green-300 border border-green-800",
             alertError: "bg-red-900/50 text-red-300 border border-red-800",
-            primaryBtn: "bg-purple-600 hover:bg-purple-700",
+            primaryBtn: "bg-blue-600 hover:bg-blue-700",
             secondaryBtn: "bg-gray-700 hover:bg-gray-600",
             overlayBg: "bg-black/50",
             loadingOverlay: "bg-black/60",
@@ -47,7 +47,7 @@ const Settings = () => {
             cardHeader: "border-gray-200",
             label: "text-gray-700",
             input: "border-gray-300 bg-white text-gray-900 placeholder-gray-400",
-            inputFocus: "focus:ring-purple-500 focus:border-purple-500",
+            inputFocus: "focus:ring-blue-500 focus:border-blue-500",
             accordionBtn: "bg-white hover:bg-gray-50",
             accordionContent: "border-gray-200",
             chevron: "text-gray-500",
@@ -55,7 +55,7 @@ const Settings = () => {
             coverPlaceholder: "bg-gray-200 text-gray-400",
             alertSuccess: "bg-green-100 text-green-700 border border-green-200",
             alertError: "bg-red-100 text-red-700 border border-red-200",
-            primaryBtn: "bg-purple-600 hover:bg-purple-700",
+            primaryBtn: "bg-blue-600 hover:bg-blue-700",
             secondaryBtn: "bg-gray-800 hover:bg-gray-900",
             overlayBg: "bg-black/40",
             loadingOverlay: "bg-black/50",
@@ -199,10 +199,10 @@ const Settings = () => {
                 {/* Page Title */}
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg transition-colors duration-300">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg transition-colors duration-300">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="w-6 h-6 text-purple-600 dark:text-purple-400"
+                                className="w-6 h-6 text-blue-600 dark:text-blue-400"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -299,7 +299,7 @@ const Settings = () => {
                         <div className="flex items-center gap-2">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="w-5 h-5 text-purple-500"
+                                className="w-5 h-5 text-blue-500"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"

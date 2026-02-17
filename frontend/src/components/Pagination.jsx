@@ -21,7 +21,7 @@ const Pagination = ({
             pageButton:
                 "bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white",
             pageButtonActive:
-                "bg-purple-600 text-white shadow-lg shadow-purple-500/30 ring-1 ring-purple-500/50",
+                "bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-500/50",
             ellipsis: "text-gray-600",
             info: "text-gray-500",
             infoHighlight: "text-gray-300",
@@ -36,7 +36,7 @@ const Pagination = ({
             pageButton:
                 "bg-transparent hover:bg-gray-100 text-gray-500 hover:text-gray-900",
             pageButtonActive:
-                "bg-purple-600 text-white shadow-lg shadow-purple-300/40 ring-1 ring-purple-500/50",
+                "bg-blue-600 text-white shadow-lg shadow-blue-300/40 ring-1 ring-blue-500/50",
             ellipsis: "text-gray-400",
             info: "text-gray-400",
             infoHighlight: "text-gray-700",

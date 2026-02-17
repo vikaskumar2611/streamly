@@ -408,7 +408,7 @@ const VideoCard = ({ video }) => {
             editButton: "text-blue-400 hover:bg-blue-500/10",
             publishButton: "text-emerald-400 hover:bg-emerald-500/10",
             unpublishButton: "text-red-400 hover:bg-red-500/10",
-            hoverTitle: "group-hover:text-purple-400",
+            hoverTitle: "group-hover:text-blue-400",
             border: "border-gray-700/50",
             playOverlay: "bg-black/30",
             skeleton: "bg-gray-700/40",
@@ -439,7 +439,7 @@ const VideoCard = ({ video }) => {
             editButton: "text-blue-600 hover:bg-blue-50",
             publishButton: "text-emerald-600 hover:bg-emerald-50",
             unpublishButton: "text-red-600 hover:bg-red-50",
-            hoverTitle: "group-hover:text-purple-600",
+            hoverTitle: "group-hover:text-blue-600",
             border: "border-gray-200",
             playOverlay: "bg-black/20",
             skeleton: "bg-gray-200/60",
@@ -637,7 +637,7 @@ const VideoCard = ({ video }) => {
                                 w-9 h-9 rounded-full object-cover
                                 ring-2 ${t.avatar}
                                 transition-all duration-200
-                                hover:ring-purple-500/50 hover:scale-105
+                                hover:ring-blue-500 hover:scale-105
                             `}
                         />
                     </Link>
