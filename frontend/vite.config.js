@@ -8,7 +8,7 @@ export default defineConfig({
     server: {
         proxy: {
             "/api/v1": {
-                target: "http://localhost:8000",
+                target: "https://streamly-u4n3.onrender.com",
                 changeOrigin: true,
             },
         },

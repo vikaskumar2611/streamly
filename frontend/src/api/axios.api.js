@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Points to the main API version prefix
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = "https://streamly-u4n3.onrender.com/api/v1";
 
 export default axios.create({
     baseURL: BASE_URL,
