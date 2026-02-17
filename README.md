@@ -14,8 +14,8 @@ public/private playlists with video organization.
 
 ## 🚀 Live Demo
 
-- **Frontend:** [https://your-netlify-link.app](https://your-netlify-link.app)
-- **Backend:** [https://your-render-link.onrender.com](https://your-render-link.onrender.com)
+- **Frontend:** [https://pixelzip.netlify.app](https://pixelzip.netlify.app)
+- **Backend:** [https://streamly-u4n3.onrender.com](https://streamly-u4n3.onrender.com)
 
 ## 🛠️ Tech Stack
 
