@@ -183,6 +183,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
         secure: true,
+        sameSite: "None",
     };
 
     //clear refresh token too
@@ -234,6 +235,7 @@ const refreshAcessToken = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            sameSite: "None",
         };
 
         //generate new tokens
